@@ -150,7 +150,7 @@ void loop()
   lcd.setCursor(10, 1);
   lcd.print("Rlp:");
   lcd.setCursor(14, 1);
-  lcd.print(Rlp);
+  lcd.print(redLinePower);
   lcd.setCursor(18, 1);
   lcd.print("W");
 
@@ -163,7 +163,7 @@ void loop()
   lcd.setCursor(10, 2);
   lcd.print("Blp:");
   lcd.setCursor(14, 2);
-  lcd.print(Blp);
+  lcd.print(blueLinePower);
   lcd.setCursor(18, 2);
   lcd.print("W");
   lcd.setCursor(0, 3);
@@ -175,7 +175,7 @@ void loop()
   lcd.setCursor(10, 3);
   lcd.print("Ylp:");
   lcd.setCursor(14, 3);
-  lcd.print(Ylp);
+  lcd.print(yellowLinePower);
   lcd.setCursor(18, 3);
   lcd.print("W");
 
