@@ -1,3 +1,4 @@
+#include <EEPROM.h>
 #include <LiquidCrystal_I2C.h>
 #include "EmonLib.h"
 #include <Wire.h>
@@ -31,11 +32,6 @@ float CalVal = 11.08433;         //Voltage divider calibration value
 float AC_LOW_VOLT = 0.0;        //Voltage at the secondary output of the transformer
 float AC_HIGH_VOLT = 0.0;       //Voltage at the primary input of the transformer(this is the voltage reading from the lcd)
 
-// LOAD POWER LIMITS
-double LOAD1_LIMIT = 300;
-double LOAD2_LIMIT = 600;
-double LOAD3_LIMIT = 1000;
-
 unsigned long delay_MS(unsigned long DELAY) // declaring and using a different delay for the code,which will allow background running of other functions
 {
   unsigned long t = millis();
@@ -46,15 +42,15 @@ unsigned long delay_MS(unsigned long DELAY) // declaring and using a different d
 
 void controller() //the function to compare the preset power to the in used power for each lines
 {
-  if(redLinePower > LOAD1_LIMIT){
+  if(redLinePower > EEPROM.read(0)){
     digitalWrite(redline,0);
   }
   
-  if(blueLinePower > LOAD2_LIMIT){
+  if(blueLinePower > EEPROM.read(1)){
     digitalWrite(blueline,0);
   }
 
-  if(yellowLinePower > LOAD3_LIMIT)
+  if(yellowLinePower > EEPROM.read(2))
   {
     digitalWrite(yellowline,0);
   }
