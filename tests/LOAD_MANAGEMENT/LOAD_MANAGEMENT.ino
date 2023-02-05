@@ -9,7 +9,7 @@ EnergyMonitor eMon1; // Create an instance</p>
 EnergyMonitor eMon2; // Create an instance</p>
 EnergyMonitor eMon3; // Create an instance</p>
 
-bool surge = false;
+// bool surge = false;
 
 // LOAD RELAYS
 int redline = 4;
@@ -124,14 +124,14 @@ void loop()
   blueLinePower = ( volt * blueLineCurrent);
   yellowLinePower = ( volt * yellowLineCurrent);
 
-  if (surge == false)
-  {
-    redLineCurrent = 0.00;
-    blueLineCurrent = 0.00;
-    yellowLineCurrent = 0.00; 
-    delay(5000);
-    surge = true;
-  }
+  // if (surge == false)
+  // {
+  //   redLineCurrent = 0.00;
+  //   blueLineCurrent = 0.00;
+  //   yellowLineCurrent = 0.00; 
+  //   delay(5000);
+  //   surge = true;
+  // }
 
   lcd.clear();
   lcd.setCursor(0, 0);
