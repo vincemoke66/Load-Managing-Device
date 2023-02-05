@@ -113,7 +113,7 @@ void loop()
   int volt = 0;
   volt = random(215,225);
 
-  acvoltinput = analogRead(A6);              //Read analog values
+  acvoltinput = analogRead(A3);              //Read analog values
   VIn_a = (acvoltinput * 5.00) / 1024.00;     //Convert 10bit input to an actual voltage
   Voltage_a = (VIn_a * CalVal);
   AC_LOW_VOLT = (Voltage_a / 1.414 );
