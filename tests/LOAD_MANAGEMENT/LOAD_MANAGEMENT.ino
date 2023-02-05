@@ -47,16 +47,16 @@ unsigned long delay_MS(unsigned long DELAY) // declaring and using a different d
 void controller() //the function to compare the preset power to the in used power for each lines
 {
   if(redLinePower > LOAD1_LIMIT){
-    digitalWrite(redline, 1);
+    digitalWrite(redline, 0);
   }
   
   if(blueLinePower > LOAD2_LIMIT){
-    digitalWrite(blueline, 1);
+    digitalWrite(blueline, 0);
   }
 
   if(yellowLinePower > LOAD3_LIMIT)
   {
-    digitalWrite(yellowline, 1);
+    digitalWrite(yellowline, 0);
   }
 }
 
@@ -94,9 +94,9 @@ void setup()
   blueLineCurrent = eMon2.calcIrms(1480) - 0.3; // reads current on blue line
   yellowLineCurrent = eMon3.calcIrms(1480) - 0.3; // reads current on yellow line
 
-  digitalWrite(redline, 0);
-  digitalWrite(blueline, 0);
-  digitalWrite(yellowline, 0);
+  digitalWrite(redline, 1);
+  digitalWrite(blueline, 1);
+  digitalWrite(yellowline, 1);
 }
 
 
