@@ -62,9 +62,9 @@ void controller() //the function to compare the preset power to the in used powe
 
 void setup() 
 {
-  eMon1.current(1, 111.1); // assigns current sensor 1 to eMon1 
-  eMon2.current(2, 111.1); // assigns current sensor 2 to eMon2 
-  eMon3.current(3, 111.1); // assigns current sensor 3 to eMon3 
+  eMon1.current(0, 111.1); // assigns current sensor 1 to eMon1 
+  eMon2.current(1, 111.1); // assigns current sensor 2 to eMon2 
+  eMon3.current(2, 111.1); // assigns current sensor 3 to eMon3 
 
   redLineCurrent = eMon1.calcIrms(1480) - 0.3; // reads current on red line
   blueLineCurrent = eMon2.calcIrms(1480) - 0.3; // reads current on blue line
