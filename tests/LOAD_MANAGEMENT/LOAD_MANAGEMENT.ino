@@ -47,16 +47,16 @@ unsigned long delay_MS(unsigned long DELAY) // declaring and using a different d
 void controller() //the function to compare the preset power to the in used power for each lines
 {
   if(redLinePower > LOAD1_LIMIT){
-    digitalWrite(redline,0);
+    digitalWrite(redline, 1);
   }
   
   if(blueLinePower > LOAD2_LIMIT){
-    digitalWrite(blueline,0);
+    digitalWrite(blueline, 1);
   }
 
   if(yellowLinePower > LOAD3_LIMIT)
   {
-    digitalWrite(yellowline,0);
+    digitalWrite(yellowline, 1);
   }
 }
 
