@@ -5,9 +5,9 @@
 LiquidCrystal_I2C lcd(0x27, 20, 4); 
 
 // CURRENT SENSOR OBJECTS
-EnergyMonitor eMon1; // Create an instance</p>
-EnergyMonitor eMon2; // Create an instance</p>
-EnergyMonitor eMon3; // Create an instance</p>
+EnergyMonitor eMon1; 
+EnergyMonitor eMon2; 
+EnergyMonitor eMon3; 
 
 // bool surge = false;
 
@@ -24,7 +24,7 @@ int yellowLinePower = 0;
 double redLineCurrent, yellowLineCurrent, blueLineCurrent;
 
 // AC VOLTAGE READINGS
-int acvoltinput = 0;              //Analog Input
+int rawVoltage = 0;              //Analog Input
 float VIn_a = 0.0;               //Voltage In after voltage divider
 float Voltage_a = 0.0;           //Actual voltage after calculation
 float CalVal = 11.08433;         //Voltage divider calibration value
@@ -32,9 +32,9 @@ float AC_LOW_VOLT = 0.0;        //Voltage at the secondary output of the transfo
 float AC_HIGH_VOLT = 0.0;       //Voltage at the primary input of the transformer(this is the voltage reading from the lcd)
 
 // LOAD POWER LIMITS
-double LOAD1_LIMIT = 300;
-double LOAD2_LIMIT = 600;
-double LOAD3_LIMIT = 1000;
+int LOAD1_LIMIT = 300;
+int LOAD2_LIMIT = 600;
+int LOAD3_LIMIT = 1000;
 
 unsigned long delay_MS(unsigned long DELAY) // declaring and using a different delay for the code,which will allow background running of other functions
 {
@@ -46,25 +46,22 @@ unsigned long delay_MS(unsigned long DELAY) // declaring and using a different d
 
 void controller() //the function to compare the preset power to the in used power for each lines
 {
-  if(redLinePower > LOAD1_LIMIT){
+  if(redLinePower > LOAD1_LIMIT) {
     digitalWrite(redline, 0);
   }
-  
-  if(blueLinePower > LOAD2_LIMIT){
+  if(blueLinePower > LOAD2_LIMIT) {
     digitalWrite(blueline, 0);
   }
-
-  if(yellowLinePower > LOAD3_LIMIT)
-  {
+  if(yellowLinePower > LOAD3_LIMIT) {
     digitalWrite(yellowline, 0);
   }
 }
 
 void setup() 
 {
-  eMon1.current(0, 111.1); // assigns current sensor 1 to eMon1 
-  eMon2.current(1, 111.1); // assigns current sensor 2 to eMon2 
-  eMon3.current(2, 111.1); // assigns current sensor 3 to eMon3 
+  eMon1.current(0, 111.1); // assigns current sensor 0 to eMon1 
+  eMon2.current(1, 111.1); // assigns current sensor 1 to eMon2 
+  eMon3.current(2, 111.1); // assigns current sensor 2 to eMon3 
 
   redLineCurrent = eMon1.calcIrms(1480) - 0.3; // reads current on red line
   blueLineCurrent = eMon2.calcIrms(1480) - 0.3; // reads current on blue line
@@ -73,7 +70,6 @@ void setup()
   for (int x = 2; x < 5; x++) pinMode(x, OUTPUT); // sets red, yellow, and blue as output 
   for (int x = 2; x < 5; x++) digitalWrite(x, 0); // writes 0 on red, yellow, and blue 
 
-  Serial.begin(9600);
   lcd.init();                
   lcd.backlight();
 
@@ -88,7 +84,7 @@ void setup()
   lcd.setCursor(0,3);
   lcd.print("Initialising..!");
   lcd.blink();
-  delay(5000);
+  delay(1000);
 
   redLineCurrent = eMon1.calcIrms(1480) - 0.3; // reads current on red line
   blueLineCurrent = eMon2.calcIrms(1480) - 0.3; // reads current on blue line
@@ -110,19 +106,19 @@ void loop()
   if (blueLineCurrent < 0.10) blueLineCurrent = 0.00;
   if (yellowLineCurrent < 0.10) yellowLineCurrent = 0.00;
   
-  int volt = 0;
-  volt = random(215,225);
+  // int volt = 0;
+  // volt = random(215,225);
 
-  acvoltinput = analogRead(A3);              //Read analog values
-  VIn_a = (acvoltinput * 5.00) / 1024.00;     //Convert 10bit input to an actual voltage
+  rawVoltage = analogRead(A3);              //Read analog values
+  VIn_a = (rawVoltage * 5.00) / 1024.00;     //Convert 10bit input to an actual voltage
   Voltage_a = (VIn_a * CalVal);
-  AC_LOW_VOLT = (Voltage_a / 1.414 );
-  AC_HIGH_VOLT = ( AC_LOW_VOLT * 18.333) + 40;
+  // AC_LOW_VOLT = (Voltage_a / 1.414 );
+  // AC_HIGH_VOLT = ( AC_LOW_VOLT * 18.333) + 40;
 
   // calculatung power of each lines
-  redLinePower = ( volt * redLineCurrent);
-  blueLinePower = ( volt * blueLineCurrent);
-  yellowLinePower = ( volt * yellowLineCurrent);
+  redLinePower = (Voltage_a * redLineCurrent);
+  blueLinePower = (Voltage_a * blueLineCurrent);
+  yellowLinePower = (Voltage_a * yellowLineCurrent);
 
   // if (surge == false)
   // {
