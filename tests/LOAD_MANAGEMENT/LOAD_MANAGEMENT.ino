@@ -24,7 +24,7 @@ int yellowLinePower = 0;
 double redLineCurrent, yellowLineCurrent, blueLineCurrent;
 
 // AC VOLTAGE READINGS
-int rawVoltage = 0;              //Analog Input
+int rawVolts = 0;              //Analog Input
 float VIn_a = 0.0;               //Voltage In after voltage divider
 float Voltage_a = 0.0;           //Actual voltage after calculation
 float CalVal = 11.08433;         //Voltage divider calibration value
@@ -109,8 +109,8 @@ void loop()
   // int volt = 0;
   // volt = random(215,225);
 
-  rawVoltage = analogRead(A3);              //Read analog values
-  VIn_a = (rawVoltage * 5.00) / 1024.00;     //Convert 10bit input to an actual voltage
+  rawVolts = analogRead(A3);              //Read analog values
+  VIn_a = (rawVolts * 5.00) / 1024.00;     //Convert 10bit input to an actual voltage
   Voltage_a = (VIn_a * CalVal);
   // AC_LOW_VOLT = (Voltage_a / 1.414 );
   // AC_HIGH_VOLT = ( AC_LOW_VOLT * 18.333) + 40;
