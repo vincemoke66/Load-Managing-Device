@@ -34,7 +34,6 @@ int rawVolts = 0;        // Analog Input
 double calcVolts = 0.0;      // Actual voltage after calculation
 double calibVolts = 0.0;
 
-
 // LOAD POWER 
 double lLoadPower = 0;
 double mLoadPower = 0;
@@ -113,17 +112,17 @@ void showInitScreen() {
     lcd.print("Power Tripper");
 }
 
-void readAllLoadCurrent() {
-    lLoadCurr = emon1.calcIrms(1480) * calibCurrent; 
-    mLoadCurr = emon2.calcIrms(1480) * calibCurrent; 
-    hLoadCurr = emon3.calcIrms(1480) * calibCurrent; 
-}
-
 void readVoltage() {
     rawVolts = analogRead(VOLTAGE_SENSOR);
     calibVolts = 220 / rawVolts;
 
     calcVolts = rawVolts * calibVolts;
+}
+
+void readAllLoadCurrent() {
+    lLoadCurr = emon1.calcIrms(1480) * calibCurrent; 
+    mLoadCurr = emon2.calcIrms(1480) * calibCurrent; 
+    hLoadCurr = emon3.calcIrms(1480) * calibCurrent; 
 }
 
 void calculateAllLoadPower() {

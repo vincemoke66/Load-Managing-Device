@@ -72,7 +72,7 @@ void setup() {
     lcd.init();
     lcd.backlight();
 
-    showWelcomeScreen();
+    showInitScreen();
     delay(2000);
 
     start_time = millis(); 
@@ -105,7 +105,7 @@ void loop() {
     // }
 }
 
-void showWelcomeScreen() {
+void showInitScreen() {
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("TESTING FEATURE:");
@@ -140,7 +140,7 @@ void tripLoads() {
 }
 
 void showAllReadings() {
-    lcd.clear();
+    clrLcdValuePlaceholders();
 
     // voltage 
     lcd.setCursor(0, 0);
@@ -150,51 +150,42 @@ void showAllReadings() {
     lcd.setCursor(19, 0);
     lcd.print("V");
 
-    // low load
-    lcd.setCursor(0, 1);
-    lcd.print("LOW:");
-    lcd.setCursor(5, 1);
-    lcd.print(lLoadCurr);
-    lcd.setCursor(9, 1);
-    lcd.print("A");
-    //
-    lcd.setCursor(11, 1);
-    lcd.print("||");
-    //
-    lcd.setCursor(14, 1);
-    lcd.print(lLoadPower);
-    lcd.setCursor(19, 1);
-    lcd.print("W");
+    // loads
+    showLoadReading("LOW ", 1, lLoadCurr, lLoadPower);
+    showLoadReading("MID ", 2, mLoadCurr, mLoadPower);
+    showLoadReading("HIGH", 3, hLoadCurr, hLoadPower);
+}
 
-    // mid load
-    lcd.setCursor(0, 2);
-    lcd.print("MID:");
-    lcd.setCursor(5, 2);
-    lcd.print(mLoadCurr);
-    lcd.setCursor(9, 2);
-    lcd.print("A");
-    //
-    lcd.setCursor(11, 2);
-    lcd.print("||");
-    //
-    lcd.setCursor(14, 2);
-    lcd.print(mLoadPower);
-    lcd.setCursor(19, 2);
-    lcd.print("W");
+void showLoadReading(char *loadLabel, int row, double loadCurr, double loadWatts) {
+    lcd.setCursor(0, row);
+    lcd.print(loadLabel);
+    lcd.print(":");
+    lcd.setCursor(5, row);
+    lcd.print(loadCurr);
+    lcd.setCursor(9, row);
+    lcd.print("A"); 
 
-    // high load
-    lcd.setCursor(0, 3);
-    lcd.print("HIGH:");
-    lcd.setCursor(5, 3);
-    lcd.print(hLoadCurr);
-    lcd.setCursor(9, 3);
-    lcd.print("A");
-    //
-    lcd.setCursor(11, 3);
+    lcd.setCursor(10, row);
     lcd.print("||");
-    //
-    lcd.setCursor(14, 3);
-    lcd.print(rawVolts);
-    lcd.setCursor(19, 3);
-    lcd.print("V");
+
+    lcd.setCursor(12, row);
+    lcd.print(loadWatts);
+    lcd.setCursor(19, row);
+    lcd.print("W");
+}
+
+void clrLcdValuePlaceholders() {
+    // voltage placeholder
+    lcd.setCursor(14, 0);
+    lcd.print("     ");
+
+    // fill in blank text on load placeholders
+    for (int i = 1; i < 4; i++) {
+        // current placeholder
+        lcd.setCursor(5, i);
+        lcd.print("    ");
+        // power placeholder
+        lcd.setCursor(12, i);
+        lcd.print("       ");
+    }
 }
