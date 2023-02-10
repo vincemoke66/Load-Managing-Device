@@ -114,9 +114,15 @@ void showInitScreen() {
 }
 
 void readAllLoadCurrent() {
+    double currentNegligence = 0.001;
+
     lLoadCurr = emon1.calcIrms(1480) * calibCurrent; 
     mLoadCurr = emon2.calcIrms(1480) * calibCurrent; 
     hLoadCurr = emon3.calcIrms(1480) * calibCurrent; 
+
+    if (lLoadCurr <= currentNegligence) lLoadCurr = 0;
+    if (mLoadCurr <= currentNegligence) mLoadCurr = 0;
+    if (hLoadCurr <= currentNegligence) hLoadCurr = 0;
 }
 
 void readVoltage() {
