@@ -14,3 +14,4 @@ Each folder consists of various tests specific for desired features. Follow inst
 ### LOAD_MANAGEMENT
 `Liquid Crystal I2C` by Frank de Brabander <br>
 `EmonLib` by OpenEnergyMonitor
+`AltSoftSerial` by Paul Stoffregen 

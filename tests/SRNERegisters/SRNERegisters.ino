@@ -75,7 +75,6 @@ void loop() {
     Serial.println(" V");
   }
 
-
   Serial.println();
   delay(1000);
 }

@@ -1,20 +1,29 @@
 #include <LiquidCrystal_I2C.h>
+#include <AltSoftSerial.h>
+#include <ModbusMaster.h>
 #include "EmonLib.h"
 
 LiquidCrystal_I2C lcd(0x27, 20, 4); 
 
 // CURRENT SENSOR PINS
-#define LOW_LOAD_CS     0
-#define MID_LOAD_CS     1
-#define HIGH_LOAD_CS    2
+const int LOW_LOAD_CS = 0;
+const int MID_LOAD_CS = 1;
+const int HIGH_LOAD_CS = 2;
 
 // LOAD RELAY PINS
-#define LOW_LOAD_RELAY  4
-#define MID_LOAD_RELAY  3
-#define HIGH_LOAD_RELAY 2
+const int LOW_LOAD_RELAY = 4;
+const int MID_LOAD_RELAY = 3;
+const int HIGH_LOAD_RELAY = 2;
+
+// RS485 PINS
+const int RS485_DE = 6;
+const int RS485_RE_NEG = 7;
 
 // VOLTAGE SENSOR PIN
 #define VOLTAGE_SENSOR A3
+
+// RESET BUTTON
+const int RESET_BTN = 1;
 
 // LOAD POWER LIMITS
 const int LOW_LIMIT = 10;
@@ -22,41 +31,62 @@ const int MID_LIMIT = 600;
 const int HIGH_LIMIT = 1000;
 
 // LOAD CURRENT READINGS
-double lLoadCurr = 0;
-double mLoadCurr = 0;
-double hLoadCurr = 0;
+double low_load_current = 0;
+double mid_load_current = 0;
+double high_load_current = 0;
 
 // CURRENT CALIBRATION
-double calibCurrent = 0.00714;
+double current_calibration = 0.00714;
 
 // VOLTAGE VARIABLES
-int rawVolts = 0;        // Analog Input
-double calcVolts = 0.0;      // Actual voltage after calculation
-double calibVolts = 0.0;
-
+int raw_system_voltage = 0;        
+double calculated_system_voltage = 0.0;      
+double system_voltage_calibration = 0.0;
 
 // LOAD POWER 
-double lLoadPower = 0;
-double mLoadPower = 0;
-double hLoadPower = 0;
+double low_load_power = 0;
+double mid_load_power = 0;
+double high_load_power = 0;
+
+const int BAUD_RATE = 9600;
+
+// TIME VARIABLES
+const int DATA_INTERVAL = 1000;
+const int INIT_TIME = 10000;
+unsigned long start_time = 0;
+unsigned long current_time = 0;
+
+// CONTROLLER VARS
+int battery_capacity = 0;
+double charging_current = 0;
+double panel_voltage = 0;
+double panel_current = 0;
+double charging_power = 0;
+
+const int BATTERY_CAPACITY_LIMIT = 50;
 
 // CURRENT SENSOR OBJECTS
 EnergyMonitor emon1; 
 EnergyMonitor emon2; 
 EnergyMonitor emon3; 
 
-// TIME VARIABLES
-int monitor_interval = 2000;
-int init_time = 10000;
-unsigned long start_time = 0;
-unsigned long current_time = 0;
+// SRNE CONTROLLER OBJECTS
+AltSoftSerial swSerial;
+ModbusMaster node;
 
 void setup() {
-    Serial.begin(9600);
+    Serial.begin(BAUD_RATE);
 
-    lLoadPower = 0;
-    mLoadPower = 0;
-    hLoadPower = 0;
+    pinMode(RS485_DE, OUTPUT);
+    pinMode(RS485_RE_NEG, OUTPUT);
+    digitalWrite(RS485_RE_NEG, 0);
+    digitalWrite(RS485_DE, 0);
+
+    // Modbus comms
+    swSerial.begin(BAUD_RATE);
+    node.begin(1, swSerial);
+    node.preTransmission(preTransmission);
+    node.postTransmission(postTransmission);
 
     // assigns current sensors to emon objects
     emon1.current(LOW_LOAD_CS, 111.1);
@@ -68,6 +98,9 @@ void setup() {
     pinMode(MID_LOAD_RELAY, OUTPUT);
     pinMode(HIGH_LOAD_RELAY, OUTPUT);
 
+    // sets reset button as input
+    pinMode(RESET_BTN, INPUT);
+
     // lcd initialization
     lcd.init();
     lcd.backlight();
@@ -75,68 +108,63 @@ void setup() {
     showInitScreen();
     delay(2000);
 
-    start_time = millis(); 
-
-    // opens the connection from source to load
-    digitalWrite(LOW_LOAD_RELAY, 1);
-    digitalWrite(MID_LOAD_RELAY, 1);
-    digitalWrite(HIGH_LOAD_RELAY, 1);
+    allowLoadPower();
 }
 
 void loop() {
     start_time = millis(); 
 
-    Serial.print("Start time: ");
-    Serial.println(start_time);
-    // if (start_time - current_time > monitor_interval) {
-    if (start_time > init_time) {
-        Serial.println("perform after init time");
+    readSystemVoltage();
+    readAllLoadCurrent();
+    readSRNERegisters();
+    calculateAllLoadPower(); 
+
+    if (digitalRead(RESET_BTN) == 1 && battery_capacity > BATTERY_CAPACITY_LIMIT)
+        allowLoadPower();
+
+    if (start_time > INIT_TIME) {
         tripLoads();
     }
 
-    readVoltage();
-    readAllLoadCurrent();
-    calculateAllLoadPower(); 
-
     showAllReadings();
-
-
-    //     current_time = start_time;
-    // }
 }
 
 void showInitScreen() {
     lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("TESTING FEATURE:");
-    lcd.setCursor(0, 1);
-    lcd.print("Power Tripper");
+    lcd.setCursor(3, 1);
+    lcd.print("LOAD MANAGING"); 
+    lcd.setCursor(6, 1);
+    lcd.print("DEVICE");
 }
 
 void readAllLoadCurrent() {
-    lLoadCurr = emon1.calcIrms(1480) * calibCurrent; 
-    mLoadCurr = emon2.calcIrms(1480) * calibCurrent; 
-    hLoadCurr = emon3.calcIrms(1480) * calibCurrent; 
+    low_load_current = emon1.calcIrms(1480) * current_calibration; 
+    mid_load_current = emon2.calcIrms(1480) * current_calibration; 
+    high_load_current = emon3.calcIrms(1480) * current_calibration; 
 }
 
-void readVoltage() {
-    rawVolts = analogRead(VOLTAGE_SENSOR);
-    calibVolts = 220 / rawVolts;
+void readSystemVoltage() {
+    raw_system_voltage = analogRead(VOLTAGE_SENSOR);
+    system_voltage_calibration = 220 / raw_system_voltage;
 
-    calcVolts = rawVolts * calibVolts;
+    calculated_system_voltage = raw_system_voltage * system_voltage_calibration;
 }
 
 void calculateAllLoadPower() {
-    lLoadPower = lLoadCurr * calcVolts;
-    mLoadPower = mLoadCurr * calcVolts;
-    hLoadPower = hLoadCurr * calcVolts;
+    low_load_power = low_load_current * calculated_system_voltage;
+    mid_load_power = mid_load_current * calculated_system_voltage;
+    high_load_power = high_load_current * calculated_system_voltage;
 }
 
 // trips a relay if the maximum load has reached
 void tripLoads() {
-    if (lLoadPower > LOW_LIMIT) digitalWrite(LOW_LOAD_RELAY, 0);
-    if (mLoadPower > MID_LIMIT) digitalWrite(MID_LOAD_RELAY, 0);
-    if (hLoadPower > HIGH_LIMIT) digitalWrite(HIGH_LOAD_RELAY, 0);
+    // load conditions
+    if (low_load_power > LOW_LIMIT) digitalWrite(LOW_LOAD_RELAY, 0);
+    if (mid_load_power > MID_LIMIT) digitalWrite(MID_LOAD_RELAY, 0);
+    if (high_load_power > HIGH_LIMIT) digitalWrite(HIGH_LOAD_RELAY, 0);
+
+    // controller conditions
+    if (battery_capacity < 50) turnOffAllLoadPower();
 }
 
 void showAllReadings() {
@@ -146,14 +174,14 @@ void showAllReadings() {
     lcd.setCursor(0, 0);
     lcd.print("VOLTAGE INPUT:");
     lcd.setCursor(14, 0);
-    lcd.print(calcVolts);
+    lcd.print(calculated_system_voltage);
     lcd.setCursor(19, 0);
     lcd.print("V");
 
     // loads
-    showLoadReading("LOW ", 1, lLoadCurr, lLoadPower);
-    showLoadReading("MID ", 2, mLoadCurr, mLoadPower);
-    showLoadReading("HIGH", 3, hLoadCurr, hLoadPower);
+    showLoadReading("LOW ", 1, low_load_current, low_load_power);
+    showLoadReading("MID ", 2, mid_load_current, mid_load_power);
+    showLoadReading("HIGH", 3, high_load_current, high_load_power);
 }
 
 void showLoadReading(char *loadLabel, int row, double loadCurr, double loadWatts) {
@@ -184,8 +212,77 @@ void clrLcdValuePlaceholders() {
         // current placeholder
         lcd.setCursor(5, i);
         lcd.print("    ");
+
         // power placeholder
         lcd.setCursor(12, i);
         lcd.print("       ");
     }
+}
+
+void readSRNERegisters() {
+    uint8_t result;
+
+    // PARSED DATA
+    result = node.readHoldingRegisters(0x0100, 9);
+    if (result == node.ku8MBSuccess)
+    {
+        // reading of desired registers 
+        battery_capacity = node.getResponseBuffer(0x00);
+        charging_current = node.getResponseBuffer(0x02) * 0.01f;
+
+        panel_voltage = node.getResponseBuffer(0x07) * 0.1f;
+        panel_current = node.getResponseBuffer(0x08) * 0.01f;
+        charging_power = node.getResponseBuffer(0x09);
+
+        // serial output of the register values
+        Serial.print("Battery Capacity: ");
+        Serial.print(battery_capacity);
+        Serial.println(" %");
+
+        Serial.print("Charging Current: ");
+        Serial.print(charging_current);
+        Serial.println(" A");
+
+        Serial.print("Panel Volts: ");
+        Serial.print(panel_voltage);
+        Serial.println(" V");
+
+        Serial.print("Panel Current: ");
+        Serial.print(panel_current);
+        Serial.println(" A");
+
+        Serial.print("Charging Power: ");
+        Serial.print(charging_power);
+        Serial.println(" W");
+    }
+
+    Serial.println();
+}
+
+// SRNE Controller function
+void preTransmission()
+{
+    digitalWrite(MAX485_RE_NEG, 1);
+    digitalWrite(MAX485_DE, 1);
+}
+
+// SRNE Controller function
+void postTransmission()
+{
+    digitalWrite(MAX485_RE_NEG, 0);
+    digitalWrite(MAX485_DE, 0);
+}
+
+void allowLoadPower() 
+{
+    digitalWrite(LOW_LOAD_RELAY, 1);
+    digitalWrite(MID_LOAD_RELAY, 1);
+    digitalWrite(HIGH_LOAD_RELAY, 1);
+}
+
+void turnOffAllLoadPower() 
+{
+    digitalWrite(LOW_LOAD_RELAY, 0);
+    digitalWrite(MID_LOAD_RELAY, 0);
+    digitalWrite(HIGH_LOAD_RELAY, 0);
 }

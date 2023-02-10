@@ -22,23 +22,23 @@ const int MID_LIMIT = 600;
 const int HIGH_LIMIT = 1000;
 
 // LOAD CURRENT READINGS
-double lLoadCurr = 0;
-double mLoadCurr = 0;
-double hLoadCurr = 0;
+double low_load_current = 0;
+double mid_load_current = 0;
+double high_load_current = 0;
 
 // CURRENT CALIBRATION
-double calibCurrent = 0.00714;
+double current_calibration = 0.00714;
 
 // VOLTAGE VARIABLES
 float rawVolts = 0;        // Analog Input
-double calcVolts = 0.0;      // Actual voltage after calculation
-double calibVolts = 0.0;
+double calculated_system_voltage = 0.0;      // Actual voltage after calculation
+double system_voltage_calibration = 0.0;
 
 
 // LOAD POWER 
-double lLoadPower = 0;
-double mLoadPower = 0;
-double hLoadPower = 0;
+double low_load_power = 0;
+double mid_load_power = 0;
+double high_load_power = 0;
 
 // CURRENT SENSOR OBJECTS
 EnergyMonitor emon1; 
@@ -47,16 +47,16 @@ EnergyMonitor emon3;
 
 // TIME VARIABLES
 int monitor_interval = 2000;
-int init_time = 10000;
+int INIT_TIME = 10000;
 unsigned long start_time = 0;
 unsigned long current_time = 0;
 
 void setup() {
     Serial.begin(9600);
 
-    lLoadPower = 0;
-    mLoadPower = 0;
-    hLoadPower = 0;
+    low_load_power = 0;
+    mid_load_power = 0;
+    high_load_power = 0;
 
     // assigns current sensors to emon objects
     emon1.current(LOW_LOAD_CS, 111.1);
@@ -89,12 +89,12 @@ void loop() {
     Serial.print("Start time: ");
     Serial.println(start_time);
     // if (start_time - current_time > monitor_interval) {
-    if (start_time > init_time) {
+    if (start_time > INIT_TIME) {
         Serial.println("perform after init time");
         tripLoads();
     }
 
-    readVoltage();
+    readSystemVoltage();
     readAllLoadCurrent();
     calculateAllLoadPower(); 
 
@@ -116,33 +116,33 @@ void showInitScreen() {
 void readAllLoadCurrent() {
     double currentNegligence = 0.009;
 
-    lLoadCurr = emon1.calcIrms(1480) * calibCurrent; 
-    mLoadCurr = emon2.calcIrms(1480) * calibCurrent; 
-    hLoadCurr = emon3.calcIrms(1480) * calibCurrent; 
+    low_load_current = emon1.calcIrms(1480) * current_calibration; 
+    mid_load_current = emon2.calcIrms(1480) * current_calibration; 
+    high_load_current = emon3.calcIrms(1480) * current_calibration; 
 
-    if (lLoadCurr <= currentNegligence) lLoadCurr = 0;
-    if (mLoadCurr <= currentNegligence) mLoadCurr = 0;
-    if (hLoadCurr <= currentNegligence) hLoadCurr = 0;
+    if (low_load_current <= currentNegligence) low_load_current = 0;
+    if (mid_load_current <= currentNegligence) mid_load_current = 0;
+    if (high_load_current <= currentNegligence) high_load_current = 0;
 }
 
-void readVoltage() {
+void readSystemVoltage() {
     rawVolts = analogRead(VOLTAGE_SENSOR);
-    calibVolts = 220 / rawVolts;
+    system_voltage_calibration = 220 / rawVolts;
 
-    calcVolts = rawVolts * calibVolts;
+    calculated_system_voltage = rawVolts * system_voltage_calibration;
 }
 
 void calculateAllLoadPower() {
-    lLoadPower = lLoadCurr * calcVolts;
-    mLoadPower = mLoadCurr * calcVolts;
-    hLoadPower = hLoadCurr * calcVolts;
+    low_load_power = low_load_current * calculated_system_voltage;
+    mid_load_power = mid_load_current * calculated_system_voltage;
+    high_load_power = high_load_current * calculated_system_voltage;
 }
 
 // trips a relay if the maximum load has reached
 void tripLoads() {
-    if (lLoadPower > LOW_LIMIT) digitalWrite(LOW_LOAD_RELAY, 0);
-    if (mLoadPower > MID_LIMIT) digitalWrite(MID_LOAD_RELAY, 0);
-    if (hLoadPower > HIGH_LIMIT) digitalWrite(HIGH_LOAD_RELAY, 0);
+    if (low_load_power > LOW_LIMIT) digitalWrite(LOW_LOAD_RELAY, 0);
+    if (mid_load_power > MID_LIMIT) digitalWrite(MID_LOAD_RELAY, 0);
+    if (high_load_power > HIGH_LIMIT) digitalWrite(HIGH_LOAD_RELAY, 0);
 }
 
 void showAllReadings() {
@@ -152,14 +152,14 @@ void showAllReadings() {
     lcd.setCursor(0, 0);
     lcd.print("VOLTAGE INPUT:");
     lcd.setCursor(14, 0);
-    lcd.print(calcVolts);
+    lcd.print(calculated_system_voltage);
     lcd.setCursor(19, 0);
     lcd.print("V");
 
     // loads
-    showLoadReading("LOW ", 1, lLoadCurr, lLoadPower);
-    showLoadReading("MID ", 2, mLoadCurr, mLoadPower);
-    showLoadReading("HIGH", 3, hLoadCurr, hLoadPower);
+    showLoadReading("LOW ", 1, low_load_current, low_load_power);
+    showLoadReading("MID ", 2, mid_load_current, mid_load_power);
+    showLoadReading("HIGH", 3, high_load_current, high_load_power);
 }
 
 void showLoadReading(char *loadLabel, int row, double loadCurr, double loadWatts) {
