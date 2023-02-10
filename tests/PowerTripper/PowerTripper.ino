@@ -30,7 +30,7 @@ double hLoadCurr = 0;
 double calibCurrent = 0.00714;
 
 // VOLTAGE VARIABLES
-int rawVolts = 0;        // Analog Input
+float rawVolts = 0;        // Analog Input
 double calcVolts = 0.0;      // Actual voltage after calculation
 double calibVolts = 0.0;
 
@@ -114,7 +114,7 @@ void showInitScreen() {
 }
 
 void readAllLoadCurrent() {
-    double currentNegligence = 0.001;
+    double currentNegligence = 0.009;
 
     lLoadCurr = emon1.calcIrms(1480) * calibCurrent; 
     mLoadCurr = emon2.calcIrms(1480) * calibCurrent; 
