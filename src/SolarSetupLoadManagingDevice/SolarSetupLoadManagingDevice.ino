@@ -101,21 +101,25 @@ void setup() {
 }
 
 void loop() {
+    // starts millis time for tracking initialization time
     start_time = millis();
 
+    // readings of all necessary data
     readSRNERegisters();
     readSystemVoltage();
     readLoadPowerConsumption();
 
+    // blocks other processes while initializing
     if (start_time < INITIALIZATION_TIME) return;
 
-    // reset (source)
+    // handles reset button click event
     if (digitalRead(RESET_BUTTON) == HIGH && sourceCanSupply()) {
         allowLoadPower();
     }
 
+    // displays all readings after all readings
+    // and possible load trips
     displayAllReadings();
-
     tripLoad();
 }
 
