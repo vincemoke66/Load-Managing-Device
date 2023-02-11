@@ -127,6 +127,12 @@ void loop() {
     }
 
     showAllReadings();
+    // TODO : add proper display 
+    // TODO : add changing display of loads base on its load relay
+        // display the values if relay is 1
+        // display "Battery and panels can't power" if relay is 0 and source can't power
+        // display "Battery and panels can't power" if relay is 0 and source can't power
+
 }
 
 void showInitScreen() {
