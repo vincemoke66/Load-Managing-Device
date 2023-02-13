@@ -306,14 +306,36 @@ void displayAllReadings() {
     }
 
     // Serial outputs
-    Serial.println("System Voltage: " + system_voltage);
+    Serial.print("System Voltage: ");
+    Serial.println(system_voltage);
     Serial.println("-----------------------");
-    Serial.println("Load Current -> LOW: [" + low_load_current + "] MID: [" + mid_load_current + "] HIGH: [" + high_load_current + "]");
-    Serial.println("Load Power -> LOW: [" + low_load_power + "] MID: [" + mid_load_power + "] HIGH: [" + high_load_power + "]");
+    // load currents 
+    Serial.print("Load Current -> LOW: ["); 
+    Serial.print(low_load_current);
+    Serial.print("] MID: [");
+    Serial.print(mid_load_current);
+    Serial.print("] HIGH: [");
+    Serial.print(high_load_current);
+    Serial.println("]");
+    // load powers
+    Serial.print("Load Power -> LOW: ["); 
+    Serial.print(low_load_power);
+    Serial.print("] MID: [");
+    Serial.print(mid_load_power);
+    Serial.print("] HIGH: [");
+    Serial.print(high_load_power);
+    Serial.println("]");
     Serial.println("-----------------------");
-    Serial.println("[SRNE] Battery Capacity: " + battery_capacity);
-    Serial.println("[SRNE] Charging Current: " + charging_current);
-    Serial.println("[SRNE] Panel Voltage: " + panel_voltage);
-    Serial.println("[SRNE] Charging Power: " + charging_power);
+    // SRNE readings 
+    Serial.print("[SRNE] Battery Capacity: ");
+    Serial.println(battery_capacity);
+    Serial.print("[SRNE] Charging Current: ");
+    Serial.println(charging_current);
+    Serial.print("[SRNE] Panel Voltage: ");
+    Serial.println(panel_voltage);
+    Serial.print("[SRNE] Panel Current: ");
+    Serial.println(panel_current);
+    Serial.print("[SRNE] Charging Power: ");
+    Serial.println(charging_power);
     Serial.println("-----------------------");
 }
