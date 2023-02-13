@@ -189,7 +189,8 @@ void postTransmission()
 
 void readSystemVoltage() {
     raw_voltage = analogRead(VOLTAGE_SENSOR);
-    system_voltage = ( raw_voltage / 1023.0 ) * 5.0;
+    // system_voltage = ( raw_voltage / 1023.0 ) * 5.0;
+    system_voltage = raw_voltage;
 }
 
 void readLoadPowerConsumption() {
@@ -284,7 +285,7 @@ void displayAllReadings() {
             loadPower  = mid_load_power;
         } 
         if (i == 3) {
-            lcd.print("HIGH :");
+            lcd.print("HIGH:");
             loadCurrent = high_load_current;
             loadPower  = high_load_power;
         } 
