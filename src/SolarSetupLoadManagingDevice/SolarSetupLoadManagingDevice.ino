@@ -260,7 +260,6 @@ void displayAllReadings() {
     lcd.setCursor(19, 0);
     lcd.print("V");
 
-    String loadLabel = "";
     double loadCurrent = 0;
     double loadPower = 0;
 
@@ -269,28 +268,27 @@ void displayAllReadings() {
         if (i == 2 && isMidLoadBlocked) continue;
         if (i == 3 && isHighLoadBlocked) continue;
 
-        if (i == 1) {
-            loadLabel = "LOW ";
-            loadCurrent = low_load_current;
-            loadPower  = low_load_power;
-        } 
-        if (i == 2) {
-            loadLabel = "MID ";
-            loadCurrent = mid_load_current;
-            loadPower  = mid_load_power;
-        } 
-        if (i == 3) {
-            loadLabel = "HIGH";
-            loadCurrent = high_load_current;
-            loadPower  = high_load_power;
-        } 
-
         lcd.setCursor(0, i);
         lcd.print("                    ");
 
         lcd.setCursor(0, i);
-        lcd.print(loadLabel);
-        lcd.print(":");
+
+        if (i == 1) {
+            lcd.print("LOW :");
+            loadCurrent = low_load_current;
+            loadPower  = low_load_power;
+        } 
+        if (i == 2) {
+            lcd.print("MID :");
+            loadCurrent = mid_load_current;
+            loadPower  = mid_load_power;
+        } 
+        if (i == 3) {
+            lcd.print("HIGH :");
+            loadCurrent = high_load_current;
+            loadPower  = high_load_power;
+        } 
+
         lcd.setCursor(5, i);
         lcd.print(loadCurrent);
         lcd.setCursor(9, i);
