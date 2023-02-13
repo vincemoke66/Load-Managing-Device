@@ -304,4 +304,16 @@ void displayAllReadings() {
         lcd.setCursor(19, i);
         lcd.print("W");
     }
+
+    // Serial outputs
+    Serial.println("System Voltage: " + system_voltage);
+    Serial.println("-----------------------");
+    Serial.println("Load Current -> LOW: [" + low_load_current + "] MID: [" + mid_load_current + "] HIGH: [" + high_load_current + "]");
+    Serial.println("Load Power -> LOW: [" + low_load_power + "] MID: [" + mid_load_power + "] HIGH: [" + high_load_power + "]");
+    Serial.println("-----------------------");
+    Serial.println("[SRNE] Battery Capacity: " + battery_capacity);
+    Serial.println("[SRNE] Charging Current: " + charging_current);
+    Serial.println("[SRNE] Panel Voltage: " + panel_voltage);
+    Serial.println("[SRNE] Charging Power: " + charging_power);
+    Serial.println("-----------------------");
 }
