@@ -113,7 +113,7 @@ void loop() {
     if (start_time < INITIALIZATION_TIME) return;
 
     // handles reset button click event
-    if (digitalRead(RESET_BUTTON) == HIGH && sourceCanSupply()) {
+    if (digitalRead(RESET_BUTTON) == LOW && sourceCanSupply()) {
         allowLoadPower();
     }
 
