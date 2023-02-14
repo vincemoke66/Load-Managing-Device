@@ -40,6 +40,8 @@ double panel_voltage;
 double panel_current;
 double charging_power;
 
+bool sourceCanSupply = true;
+
 // Objects 
 LiquidCrystal_I2C lcd(0x27, 20, 4); 
 EnergyMonitor emon1; 
@@ -97,7 +99,7 @@ void setup() {
 
     showInitScreen();
 
-    allowLoadPower();
+    transmitPowerToAllLoads();
 }
 
 void loop() {
@@ -121,9 +123,34 @@ void loop() {
     // and possible load trips
     displayAllReadings();
     tripLoad();
+
+
+    // ----------------------------
+    // NEW MAIN LOGIC
+
+    // if reset button is pressed
+    if (digitalRead(RESET_BUTTON) == HIGH) {
+        transmitPowerToAllLoads();
+    }
+
+    readSRNERegisters();
+    analyzeSRNERegisters();
+    // if source is insufficient 
+    if (!sourceCanSupply) {
+        tripOffAllLoads();
+        return;
+    }
+
+    readLoadPowerConsumption();
+    // if low load exceeded
+        // cut low load 
+    // if mid load exceeded
+        // cut mid load
+    // if high laod exceeded
+        // cut high load 
 }
 
-void allowLoadPower() {
+void transmitPowerToAllLoads() {
     digitalWrite(LOW_RELAY, 1);
     digitalWrite(MID_RELAY, 1);
     digitalWrite(HIGH_RELAY, 1);
@@ -168,6 +195,10 @@ void readSRNERegisters() {
         panel_current = node.getResponseBuffer(0x08) * 0.01f;
         charging_power = node.getResponseBuffer(0x09);
     }
+}
+
+void analyzeSRNERegisters() {
+
 }
 
 bool sourceCanSupply() {
@@ -339,4 +370,14 @@ void displayAllReadings() {
     Serial.print("[SRNE] Charging Power: ");
     Serial.println(charging_power);
     Serial.println("-----------------------");
+}
+
+void tripOffAllLoads() {
+    digitalWrite(LOW_RELAY, 1);
+    digitalWrite(MID_RELAY, 1);
+    digitalWrite(HIGH_RELAY, 1);
+
+    isLowLoadBlocked = true;
+    isMidLoadBlocked = true;
+    isHighLoadBlocked = true;
 }
