@@ -50,7 +50,7 @@ ModbusMaster node;
 
 // Limit Variables
 const int SOURCE_BATTERY_LIMIT = 50;
-const int LOW_POWER_LIMIT = 300;
+const int LOW_POWER_LIMIT = 5;
 const int MID_POWER_LIMIT = 600;
 const int HIGH_POWER_LIMIT = 1000;
 
@@ -60,10 +60,15 @@ bool isHighLoadBlocked = false;
 
 // Time variables
 const int INITIALIZATION_TIME = 10000;
+const int MONITOR_INTERVAL = 2000;
 unsigned long start_time = 0;
+unsigned long current_time = 0;
 
 // Baud rate
 const int BAUD_RATE = 9600;
+
+// TESTING VARS
+bool isTesting = true;
 
 void setup() {
     Serial.begin(BAUD_RATE);
@@ -103,6 +108,8 @@ void setup() {
 void loop() {
     // starts millis time for tracking initialization time
     start_time = millis();
+    Serial.print("RESET BUTTON STATUS: ");
+    Serial.println(digitalRead(RESET_BUTTON));
 
     // readings of all necessary data
     readSRNERegisters();
@@ -113,13 +120,17 @@ void loop() {
     if (start_time < INITIALIZATION_TIME) return;
 
     // handles reset button click event
-    if (digitalRead(RESET_BUTTON) == LOW && sourceCanSupply()) {
+    if (digitalRead(RESET_BUTTON) == 1 && sourceCanSupply()) {
         allowLoadPower();
     }
 
     // displays all readings after all readings
     // and possible load trips
-    displayAllReadings();
+    if (start_time > current_time + MONITOR_INTERVAL) {
+        displayAllReadings();
+        current_time = start_time;
+    }
+
     tripLoad();
 }
 
@@ -156,6 +167,11 @@ void reset() {
 }
 
 void readSRNERegisters() {
+    if (isTesting) {
+        battery_capacity = 100;
+        return;
+    }
+
     uint8_t result;
 
     // PARSED DATA
@@ -309,6 +325,10 @@ void displayAllReadings() {
     Serial.println(raw_voltage);
     Serial.print("System Voltage: ");
     Serial.println(system_voltage);
+    Serial.println("-----------------------");
+    // Reset Status
+    Serial.print("Reset Button Status: ");
+    Serial.println(digitalRead(RESET_BUTTON));
     Serial.println("-----------------------");
     // load currents 
     Serial.print("Load Current -> LOW: ["); 
