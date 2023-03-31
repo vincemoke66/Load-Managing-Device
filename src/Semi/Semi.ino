@@ -1,8 +1,9 @@
-#include <LiquidCrystal_I2C.h>
-#include <AltSoftSerial.h>
-#include <ModbusMaster.h>
-#include "EmonLib.h"
-#include "ACS712.h"
+#include <LiquidCrystal_I2C.h>  // for LCD
+#include <AltSoftSerial.h>      // for SRNE 
+#include <ModbusMaster.h>       // for SRNE
+#include "EmonLib.h"            // for SRNE
+#include <PZEM004Tv30.h>        // for PZEM
+#include <SoftwareSerial.h>     // for PZEM
 
 /* PIN CONFIGURATION */
 #define LOW_RELAY_PIN 4
@@ -29,8 +30,6 @@ const int HIGH_LOAD_MAX_POWER = 1000;   // **
 
 const int POWER_CALCULATION_INTERVAL = 5000;
 
-const double current_calibration = 0.00714;
-
 /* SRNE VARIABLES */
 int srne_battery_capacity = 0;
 int srne_charging_current = 0;
@@ -38,13 +37,13 @@ int srne_panel_voltage = 0;
 int srne_panel_current = 0;
 int srne_charging_power = 0;
 
-/* CURRENT AND VOLTAGE */
-float acs_raw_value = 0;
-float acs_final_value = 0;
-float clamp_value = 0;
-float raw_voltage = 0;
-float system_voltage = 0;
-float average_final_current = 0;
+// LOAD POWER VARIABLES for PZEM readings 
+float voltage;
+float current;
+float power;
+float energy;
+float frequency;
+float pf;
 
 /* POWER VALUES */
 float acs_load_power = 0;
@@ -70,6 +69,13 @@ EnergyMonitor clamp;
 AltSoftSerial swSerial;
 ModbusMaster node;
 ACS712 acs_sensor(ACS712_20A, ACS_PIN);
+
+/* Use software serial for the PZEM
+ * Pin 11 Rx (Connects to the Tx pin on the PZEM)
+ * Pin 12 Tx (Connects to the Rx pin on the PZEM)
+*/
+SoftwareSerial pzemSWSerial(11, 12);
+PZEM004Tv30 pzem;
 
 /* FOR TESTING WITH CUSTOM BATTERY CAPACITY */
 bool isTesting = true;
@@ -106,7 +112,10 @@ void setup() {
     // LCD init
     lcd.init();
     lcd.backlight();
-    
+
+    // PZEM init
+    pzem = PZEM004Tv30(pzemSWSerial);
+
     /* FOR TESTING */
     digitalWrite(LOW_RELAY_PIN, LOW);
 
@@ -125,32 +134,35 @@ void loop() {
         reset();
     }
 
-    /* POWER CONTROL ON BATTERY CAPACITY*/
     // read SRNE values
     readSRNE();
     // analyze SRNE values base on battery capacity
     analyzeAllowableLoad();
+
     // analyze which load to trip off 
     analyzeLoadToTripOff();
-    /***********************************/
 
-    /* POWER CONTROL ON LOAD POWER */
-    // read ACS value
-    readACS();
-    // read clamp sensor value
-    readClampCurrent();
-    // read voltage
-    readVoltage();
-    // calculate load power with each current values
-    calculateLoadPowerConsumption();    
+    // load readigns: voltage, current, power..
+    readPZEM();
+
+    // removed load power consumption as it is no longer needed
+
     // analyze which load to trip off 
     analyzeLoadToTripOff();
-    /***********************************/
 
-    /* SERPARATOR */
-    Serial.println("- - - - - -");
+    Serial.println("- - - - - -"); // serial print separator
 
+    // delay for accurate readings 
     delay(2000);
+}
+
+void readPZEM() {
+    voltage = pzem.voltage();
+    current = pzem.current();
+    power = pzem.power();
+    energy = pzem.energy();
+    frequency = pzem.frequency();
+    pf = pzem.pf(); // power factor
 }
 
 void reset() {
@@ -267,21 +279,6 @@ void readVoltage() {
     // serial print
     Serial.print("System Voltage: "); 
     Serial.println(system_voltage); 
-}
-
-void calculateLoadPowerConsumption() {
-    if (millis() - current_power_calculation_time > POWER_CALCULATION_INTERVAL) return;
-
-    current_power_calculation_time = millis();
-
-    acs_load_power = acs_final_value * system_voltage;
-    clamp_load_power = clamp_value * system_voltage;
-
-    // serial print
-    Serial.print("ACS Load Power: "); 
-    Serial.print(acs_load_power); 
-    Serial.print("\tClamp Load Power: "); 
-    Serial.println(clamp_load_power); 
 }
 
 // determines which load to trip off based on load power consumption
