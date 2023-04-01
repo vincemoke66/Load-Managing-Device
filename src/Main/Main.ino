@@ -21,7 +21,7 @@ const int HIGH_LOAD_BATT_REQ = 100;     // **
 const int LOW_LOAD_MAX_POWER = 300;     // **
 const int MID_LOAD_MAX_POWER = 600;     // LOAD MAX ALLOWABLE POWER
 const int HIGH_LOAD_MAX_POWER = 1000;   // **
-const int POWER_READING_INTERVAL = 3;   // power readings and display interval in seconds
+const int DATA_READING_INTERVAL = 3;   // power readings and display interval in seconds
 
 /* SRNE VARIABLES */
 int srne_battery_capacity = 0;
@@ -41,8 +41,8 @@ float energy;
 float frequency;
 float pf;
 
-// TIME OF PREVIOUS LOAD POWER READING
-unsigned long present_power_calculation_time = 0;
+// TIME OF PREVIOUS DATA READING
+unsigned long previous_data_reading = 0;
 
 /* OBJECTS */
 LiquidCrystal_I2C lcd(0x27, 20, 4); 
@@ -130,12 +130,11 @@ void loop() {
     // trip off load connection based on load power and present battery level
     tripOffLoadConnection();
 
-    // TODO: add lcd readings and status display
-    displayData();
-
-
-    // delay
-    delay(POWER_READING_INTERVAL * 1000);
+    // data display delay
+    if (millis() - previous_data_reading > (DATA_READING_INTERVAL * 1000)) {
+        previous_data_reading = millis();
+        displayData();
+    }
 }
 
 // SRNE Controller functions
