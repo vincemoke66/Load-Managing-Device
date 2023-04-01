@@ -49,7 +49,6 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 EnergyMonitor clamp; 
 AltSoftSerial swSerial;
 ModbusMaster node;
-ACS712 acs_sensor(ACS712_20A, ACS_PIN);
 SoftwareSerial pzemSWSerial(11, 12); // * [11 -> PZEM Tx] | [12 -> PZEM Rx]
 PZEM004Tv30 pzem;
 
