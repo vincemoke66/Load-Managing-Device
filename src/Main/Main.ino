@@ -278,7 +278,7 @@ void displayData() {
     }
     if (lowLoadStatus == 2) {
         lcd.setCursor(1, 6);
-        lcd.print("CONNECTED   ");
+        lcd.print("SUFFICIENT  ");
         lcd.write(5);
     }
     /************************/
@@ -298,7 +298,7 @@ void displayData() {
     }
     if (midLoadStatus == 2) {
         lcd.setCursor(2, 6);
-        lcd.print("CONNECTED   ");
+        lcd.print("SUFFICIENT  ");
         lcd.write(5);
     }
     /************************/
@@ -318,7 +318,7 @@ void displayData() {
     }
     if (highLoadStatus == 2) {
         lcd.setCursor(3, 6);
-        lcd.print("CONNECTED   ");
+        lcd.print("SUFFICIENT  ");
         lcd.write(5);
     }
     /************************/
