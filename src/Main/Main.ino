@@ -17,7 +17,10 @@
 /* CONSTANTS */
 const int LOW_LOAD_BATT_REQ = 65;       // **
 const int MID_LOAD_BATT_REQ = 80;       // LOAD BATTERY REQUIREMENTS
-const int HIGH_LOAD_BATT_REQ = 100;     // **
+const int HIGH_LOAD_BATT_REQ = 95;      // **
+const int LOW_LOAD_BATT_LIMIT = 50;     // **
+const int MID_LOAD_BATT_LIMIT = 65;     // LOAD BATTERY LIMITS 
+const int HIGH_LOAD_BATT_LIMIT = 80;    // **
 const int LOW_LOAD_MAX_POWER = 300;     // **
 const int MID_LOAD_MAX_POWER = 600;     // LOAD MAX ALLOWABLE POWER
 const int HIGH_LOAD_MAX_POWER = 1000;   // **
@@ -209,15 +212,15 @@ void readPZEM() {
 
 void tripOffLoadConnection() {
     // trips off load connection based on battery level
-    if (srne_battery_capacity < HIGH_LOAD_BATT_REQ) {
+    if (srne_battery_capacity < HIGH_LOAD_BATT_LIMIT) {
         digitalWrite(HIGH_RELAY_PIN, HIGH); // trips off high load connection
         highLoadStatus = 1;
     }
-    if (srne_battery_capacity < MID_LOAD_BATT_REQ) {
+    if (srne_battery_capacity < MID_LOAD_BATT_LIMIT) {
         digitalWrite(MID_RELAY_PIN, HIGH); // trips mid load connection
         midLoadStatus = 1;
     }
-    if (srne_battery_capacity < LOW_LOAD_BATT_REQ) {
+    if (srne_battery_capacity < LOW_LOAD_BATT_LIMIT) {
         digitalWrite(LOW_RELAY_PIN, HIGH); // allows low load connection
         lowLoadStatus = 1;
     }
