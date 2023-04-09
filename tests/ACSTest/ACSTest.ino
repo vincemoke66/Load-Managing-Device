@@ -9,7 +9,7 @@ void loop() {
     unsigned int x = 0;
     float AcsValue = 0.0, Samples = 0.0, AvgAcs = 0.0, AcsValueF = 0.0;
     
-    for (int x = 0; x < 150; x++) { //Get 150 samples
+    for (x = 0; x < 150; x++) { //Get 150 samples
         AcsValue = analogRead(ACS_PIN);     //Read current sensor values
         Samples = Samples + AcsValue;  //Add samples together
         delay (3); // let ADC settle before following sample 3ms

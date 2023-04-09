@@ -15,16 +15,21 @@
 #define RS485_RE_PIN 7
 
 /* CONSTANTS */
-const int LOW_LOAD_BATT_REQ = 65;       // **
-const int MID_LOAD_BATT_REQ = 80;       // LOAD BATTERY REQUIREMENTS
-const int HIGH_LOAD_BATT_REQ = 95;      // **
-const int LOW_LOAD_BATT_LIMIT = 50;     // **
-const int MID_LOAD_BATT_LIMIT = 65;     // LOAD BATTERY LIMITS 
-const int HIGH_LOAD_BATT_LIMIT = 80;    // **
-const int LOW_LOAD_MAX_POWER = 300;     // **
-const int MID_LOAD_MAX_POWER = 600;     // LOAD MAX ALLOWABLE POWER
-const int HIGH_LOAD_MAX_POWER = 1000;   // **
-const int DATA_READING_INTERVAL = 3;   // power readings and display interval in seconds
+// LOAD BATTERY REQUIREMENTS AND LIMITS
+const int LOW_LOAD_BATT_REQ = 65;
+const int LOW_LOAD_BATT_LIMIT = 50;
+//
+const int MID_LOAD_BATT_REQ = 80;
+const int MID_LOAD_BATT_LIMIT = 65;
+//
+const int HIGH_LOAD_BATT_REQ = 95;
+const int HIGH_LOAD_BATT_LIMIT = 80;
+
+// LOAD MAX ALLOWABLE POWER
+const int LOW_LOAD_MAX_POWER = 300;
+const int MID_LOAD_MAX_POWER = 600;
+const int HIGH_LOAD_MAX_POWER = 1000;
+const int DATA_READING_INTERVAL = 3;
 
 /* SRNE VARIABLES */
 int srne_battery_capacity = 0;
@@ -116,7 +121,7 @@ void setup() {
 
     // initial bootup functions 
     readSRNE();
-    allowLoadConnection();
+    allowLoadConnection(false);
     prev_reset_value = digitalRead(RESET_PIN);
 }
 
@@ -129,6 +134,9 @@ void loop() {
 
     // read load power
     readPZEM();
+
+    // allow load connection but check if load has not overloaded
+    allowLoadConnection(true);
 
     // trip off load connection based on load power and present battery level
     tripOffLoadConnection();
@@ -154,7 +162,7 @@ void postTransmission() {
 void reset() {
     prev_reset_value = digitalRead(RESET_PIN);
     readSRNE();
-    allowLoadConnection();
+    allowLoadConnection(false);
 }
 
 void readSRNE() {
@@ -186,16 +194,26 @@ void readSRNE() {
     Serial.println(srne_battery_capacity);
 }
 
-void allowLoadConnection() {
-    if (srne_battery_capacity >= LOW_LOAD_BATT_REQ) {
+void allowLoadConnection(bool shouldCheckOverloaded) {
+    bool lowHasChecked = true;
+    bool midHasChecked = true;
+    bool highHasChecked = true;
+
+    if (shouldCheckOverloaded) {
+        lowHasChecked = lowLoadStatus == 1;
+        midHasChecked = midLoadStatus == 1;
+        highHasChecked = highLoadStatus == 1;
+    }
+
+    if (lowHasChecked && srne_battery_capacity >= LOW_LOAD_BATT_REQ) {
         digitalWrite(LOW_RELAY_PIN, LOW); // allows low load connection
         lowLoadStatus = 2;
     }
-    if (srne_battery_capacity >= MID_LOAD_BATT_REQ) {
+    if (midHasChecked && srne_battery_capacity >= MID_LOAD_BATT_REQ) {
         digitalWrite(MID_RELAY_PIN, LOW); // allows mid load connection
         midLoadStatus = 2;
     }
-    if (srne_battery_capacity >= HIGH_LOAD_BATT_REQ) {
+    if (highHasChecked && srne_battery_capacity >= HIGH_LOAD_BATT_REQ) {
         digitalWrite(HIGH_RELAY_PIN, LOW); // allows high load connection
         highLoadStatus = 2;
     }
