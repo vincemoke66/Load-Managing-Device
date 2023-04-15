@@ -60,7 +60,7 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 EnergyMonitor clamp; 
 AltSoftSerial swSerial;
 ModbusMaster node;
-SoftwareSerial pzemSWSerial(11, 12); // * [11 -> PZEM Tx] | [12 -> PZEM Rx]
+SoftwareSerial pzemSWSerial(11, 10); // * [11 -> PZEM Tx] | [10 -> PZEM Rx]
 PZEM004Tv30 pzem;
 virtuabotixRTC mainRTC(12, 13, A2);
 
