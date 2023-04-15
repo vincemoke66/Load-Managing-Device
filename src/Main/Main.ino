@@ -267,7 +267,7 @@ void tripOffLoadConnection() {
     }
 
     // trips off load connection if it is in sufficient status and changes to insufficient
-    if (highLoadStatus == 2 && highLoadIsOnCurfew) {
+    if ((highLoadStatus == 2 || highLoadStatus == 1) && highLoadIsOnCurfew) {
         digitalWrite(HIGH_RELAY_PIN, HIGH);   // trips off high load connection
         highLoadStatus = 1; // sets high load status as insufficient
     }
