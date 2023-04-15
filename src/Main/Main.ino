@@ -387,6 +387,9 @@ void displayData() {
         Serial.print(":");
         Serial.println(mainRTC.seconds);
 
+        Serial.print("High Load Curfew Status: ");
+        Serial.println(highLoadIsOnCurfew);
+
         Serial.println("- - - - - - - - - - -");    // separator
         previous_serial_printing = millis();
     }
