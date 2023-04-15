@@ -207,15 +207,15 @@ void allowLoadConnection(bool shouldCheckOverloaded) {
 
     if (lowHasChecked && srne_battery_capacity >= LOW_LOAD_BATT_REQ) {
         digitalWrite(LOW_RELAY_PIN, LOW); // allows low load connection
-        lowLoadStatus = 2;
+        lowLoadStatus = 2; // sets low load status as sufficient
     }
     if (midHasChecked && srne_battery_capacity >= MID_LOAD_BATT_REQ) {
         digitalWrite(MID_RELAY_PIN, LOW); // allows mid load connection
-        midLoadStatus = 2;
+        midLoadStatus = 2; // sets mid load status as sufficient
     }
     if (highHasChecked && srne_battery_capacity >= HIGH_LOAD_BATT_REQ) {
         digitalWrite(HIGH_RELAY_PIN, LOW); // allows high load connection
-        highLoadStatus = 2;
+        highLoadStatus = 2; // sets high load status as sufficient
     }
 }
 
@@ -232,29 +232,29 @@ void tripOffLoadConnection() {
     // trips off load connection based on battery level
     if (srne_battery_capacity < HIGH_LOAD_BATT_LIMIT) {
         digitalWrite(HIGH_RELAY_PIN, HIGH); // trips off high load connection
-        highLoadStatus = 1;
+        highLoadStatus = 1; // sets high load status as insufficient 
     }
     if (srne_battery_capacity < MID_LOAD_BATT_LIMIT) {
         digitalWrite(MID_RELAY_PIN, HIGH); // trips mid load connection
-        midLoadStatus = 1;
+        midLoadStatus = 1; // sets mid load status as insufficient 
     }
     if (srne_battery_capacity < LOW_LOAD_BATT_LIMIT) {
         digitalWrite(LOW_RELAY_PIN, HIGH); // allows low load connection
-        lowLoadStatus = 1;
+        lowLoadStatus = 1; // sets low load status as insufficient 
     }
 
     // trips off load connection based on load power 
-    if (power > LOW_LOAD_MAX_POWER) {
-        digitalWrite(LOW_RELAY_PIN, HIGH);     // trips off low load connection
-        lowLoadStatus = 0;
-    }
-    if (power > MID_LOAD_MAX_POWER) {
-        digitalWrite(MID_RELAY_PIN, HIGH);     // trips off mid load connection
-        midLoadStatus = 0;
-    }
     if (power > HIGH_LOAD_MAX_POWER) {
         digitalWrite(HIGH_RELAY_PIN, HIGH);   // trips off high load connection
-        highLoadStatus = 0;
+        highLoadStatus = 0; // sets high load status as overloaded
+    }
+    if (power > MID_LOAD_MAX_POWER && (highLoadStatus == 0 || highLoadStatus == 1)) {
+        digitalWrite(MID_RELAY_PIN, HIGH);     // trips off mid load connection
+        midLoadStatus = 0; // sets mid load status as overloaded
+    }
+    if (power > LOW_LOAD_MAX_POWER && (midLoadStatus == 0 || midLoadStatus == 1)) {
+        digitalWrite(LOW_RELAY_PIN, HIGH);     // trips off low load connection
+        lowLoadStatus = 0; // sets low load status as overloaded
     }
 }
 
