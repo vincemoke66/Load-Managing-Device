@@ -242,7 +242,7 @@ void tripOffLoadConnection() {
     checkHighLoadByTime();
 
     // trips off load connection based on battery level
-    if (srne_battery_capacity < HIGH_LOAD_BATT_LIMIT || highLoadIsOnCurfew) {
+    if (srne_battery_capacity < HIGH_LOAD_BATT_LIMIT) {
         digitalWrite(HIGH_RELAY_PIN, HIGH); // trips off high load connection
         highLoadStatus = 1; // sets high load status as insufficient 
     }
@@ -267,6 +267,12 @@ void tripOffLoadConnection() {
     if (power > LOW_LOAD_MAX_POWER && (midLoadStatus == 0 || midLoadStatus == 1)) {
         digitalWrite(LOW_RELAY_PIN, HIGH);     // trips off low load connection
         lowLoadStatus = 0; // sets low load status as overloaded
+    }
+
+    // trips off load connection if it is in sufficient status and changes to insufficient
+    if (highLoadStatus == 2 && highLoadIsOnCurfew) {
+        digitalWrite(HIGH_RELAY_PIN, HIGH);   // trips off high load connection
+        highLoadStatus = 1; // sets high load status as insufficient
     }
 }
 
