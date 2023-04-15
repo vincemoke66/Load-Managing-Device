@@ -274,7 +274,7 @@ void tripOffLoadConnection() {
 }
 
 void checkHighLoadByTime() {
-    highLoadIsOnCurfew = (mainRTC.hours > 15 || mainRTC.hours < 9);
+    highLoadIsOnCurfew = ((mainRTC.hours >= 15 && mainRTC.minutes > 0) || mainRTC.hours < 9) ? true : false;
 }
 
 void displayData() {
