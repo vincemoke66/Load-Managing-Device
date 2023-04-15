@@ -54,6 +54,7 @@ float pf;
 
 // TIME OF PREVIOUS DATA READING
 unsigned long previous_data_reading = 0;
+unsigned long previous_serial_printing = 0;
 
 /* OBJECTS */
 LiquidCrystal_I2C lcd(0x27, 20, 4); 
@@ -364,27 +365,30 @@ void displayData() {
     /************************/
 
     /* SERIAL PRINT */
-    Serial.print("Battery Level: ");
-    Serial.print(srne_battery_capacity);
-    Serial.print("% | ");
-    Serial.print("Load Power: ");
-    Serial.print(power);
-    Serial.println("W");
+    if (millis() - previous_serial_printing >= 2000) {
+        Serial.print("Battery Level: ");
+        Serial.print(srne_battery_capacity);
+        Serial.print("% | ");
+        Serial.print("Load Power: ");
+        Serial.print(power);
+        Serial.println("W");
 
-    Serial.print("LOW Load Status: ");
-    Serial.println(lowLoadStatus);
-    Serial.print("MID Load Status: ");
-    Serial.println(midLoadStatus);
-    Serial.print("HIGH Load Status: ");
-    Serial.println(highLoadStatus);
+        Serial.print("LOW Load Status: ");
+        Serial.println(lowLoadStatus);
+        Serial.print("MID Load Status: ");
+        Serial.println(midLoadStatus);
+        Serial.print("HIGH Load Status: ");
+        Serial.println(highLoadStatus);
 
-    Serial.print("Current Time: ");
-    Serial.print(mainRTC.hours);
-    Serial.print(":");
-    Serial.print(mainRTC.minutes);
-    Serial.print(":");
-    Serial.println(mainRTC.seconds);
+        Serial.print("Current Time: ");
+        Serial.print(mainRTC.hours);
+        Serial.print(":");
+        Serial.print(mainRTC.minutes);
+        Serial.print(":");
+        Serial.println(mainRTC.seconds);
 
-    Serial.println("- - - - - - - - - - -");    // separator
+        Serial.println("- - - - - - - - - - -");    // separator
+        previous_serial_printing = millis();
+    }
     /***************/
 }
