@@ -198,10 +198,6 @@ void readSRNE() {
         srne_panel_current = node.getResponseBuffer(0x08) * 0.01f;
         srne_charging_power = node.getResponseBuffer(0x09);
     }
-
-    /* Serial output */
-    Serial.print("Battery Capacity: ");
-    Serial.println(srne_battery_capacity);
 }
 
 void allowLoadConnection(bool shouldCheckOverloaded) {
