@@ -5,6 +5,7 @@
 #include "EmonLib.h"            // for SRNE
 #include <PZEM004Tv30.h>        // for PZEM
 #include <SoftwareSerial.h>     // for PZEM
+#include <virtuabotixRTC.h>     // for RTC
 
 /* PIN CONFIGURATION */
 #define HIGH_RELAY_PIN 2
@@ -41,6 +42,8 @@ int srne_charging_power = 0;
 /* RESET BUTTON VARIABLE */
 bool prev_reset_value = false;
 
+bool highLoadIsOnCurfew = false;
+
 // LOAD POWER VARIABLES for PZEM readings 
 float voltage;
 float current;
@@ -59,6 +62,7 @@ AltSoftSerial swSerial;
 ModbusMaster node;
 SoftwareSerial pzemSWSerial(11, 12); // * [11 -> PZEM Tx] | [12 -> PZEM Rx]
 PZEM004Tv30 pzem;
+virtuabotixRTC mainRTC(12, 13, A2);
 
 /* FOR TESTING */
 bool isTesting = true;
@@ -121,11 +125,14 @@ void setup() {
 
     // initial bootup functions 
     readSRNE();
+    checkHighLoadByTime();
     allowLoadConnection(false);
     prev_reset_value = digitalRead(RESET_PIN);
 }
 
 void loop() {
+    mainRTC.updateTime(); 
+
     // handles reset button on press event 
     if (digitalRead(RESET_PIN) != prev_reset_value) reset();
     
@@ -136,6 +143,7 @@ void loop() {
     readPZEM();
 
     // allow load connection but check if load has not overloaded
+    // and allows high load connection if time is between 9AM-3PM or 9-15
     allowLoadConnection(true);
 
     // trip off load connection based on load power and present battery level
@@ -162,6 +170,7 @@ void postTransmission() {
 void reset() {
     prev_reset_value = digitalRead(RESET_PIN);
     readSRNE();
+    checkHighLoadByTime();
     allowLoadConnection(false);
 }
 
@@ -213,7 +222,7 @@ void allowLoadConnection(bool shouldCheckOverloaded) {
         digitalWrite(MID_RELAY_PIN, LOW); // allows mid load connection
         midLoadStatus = 2; // sets mid load status as sufficient
     }
-    if (highHasChecked && srne_battery_capacity >= HIGH_LOAD_BATT_REQ) {
+    if (highHasChecked && srne_battery_capacity >= HIGH_LOAD_BATT_REQ && !highLoadIsOnCurfew) {
         digitalWrite(HIGH_RELAY_PIN, LOW); // allows high load connection
         highLoadStatus = 2; // sets high load status as sufficient
     }
@@ -229,8 +238,11 @@ void readPZEM() {
 }
 
 void tripOffLoadConnection() {
+    // check high load condition based on time
+    checkHighLoadByTime();
+
     // trips off load connection based on battery level
-    if (srne_battery_capacity < HIGH_LOAD_BATT_LIMIT) {
+    if (srne_battery_capacity < HIGH_LOAD_BATT_LIMIT || highLoadIsOnCurfew) {
         digitalWrite(HIGH_RELAY_PIN, HIGH); // trips off high load connection
         highLoadStatus = 1; // sets high load status as insufficient 
     }
@@ -256,6 +268,10 @@ void tripOffLoadConnection() {
         digitalWrite(LOW_RELAY_PIN, HIGH);     // trips off low load connection
         lowLoadStatus = 0; // sets low load status as overloaded
     }
+}
+
+void checkHighLoadByTime() {
+    highLoadIsOnCurfew = (mainRTC.hours > 15 || mainRTC.hours < 9);
 }
 
 void displayData() {
