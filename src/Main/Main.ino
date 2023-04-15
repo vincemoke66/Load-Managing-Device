@@ -372,6 +372,13 @@ void displayData() {
     Serial.print("HIGH Load Status: ");
     Serial.println(highLoadStatus);
 
+    Serial.print("Current Time: ");
+    Serial.print(mainRTC.hours);
+    Serial.print(":");
+    Serial.print(mainRTC.minutes);
+    Serial.print(":");
+    Serial.println(mainRTC.seconds);
+
     Serial.println("- - - - - - - - - - -");    // separator
     /***************/
 }
